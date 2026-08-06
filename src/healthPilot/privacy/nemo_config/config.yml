@@ -1,0 +1,54 @@
+models:
+  - type: main
+    engine: openai
+    model: gpt-4o-mini
+    parameters:
+      base_url: https://api.openai.com/v1
+      temperature: 0
+
+rails:
+  input:
+    flows:
+      - self check input
+  output:
+    flows:
+      - self check output
+
+instructions:
+  - type: general
+    content: |
+      You are validating content for HealthPilot, a wellness coaching application.
+      HealthPilot provides lifestyle and wellness recommendations only.
+      It must never diagnose diseases, prescribe medication, or replace professional medical advice.
+      Redirect emergency medical situations to seek immediate professional care.
+
+prompts:
+  - task: self_check_input
+    content: |
+      Your task is to check if the user message below complies with the HealthPilot policy.
+
+      Policy:
+      - Wellness and lifestyle coaching only
+      - No requests for diagnosis, prescription, or treatment plans
+      - No emergency medical triage (direct user to emergency services)
+      - No harmful, illegal, or abusive content
+
+      User message: "{{ user_input }}"
+
+      Question: Should the user message be blocked (Yes or No)?
+      Answer:
+
+  - task: self_check_output
+    content: |
+      Your task is to check if the bot response below complies with the HealthPilot policy.
+
+      Policy:
+      - Provide wellness and lifestyle guidance only
+      - Never diagnose conditions or prescribe medication
+      - Include appropriate disclaimers when discussing biomarkers or health metrics
+      - Do not claim to replace a healthcare professional
+
+      Bot response: "{{ bot_response }}"
+
+      Question: Should the bot response be blocked (Yes or No)?
+      Answer:

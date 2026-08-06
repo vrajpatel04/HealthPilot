@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from healthPilot.core.config import get_settings
 from healthPilot.api.routes import router as api_router
 from healthPilot.api.endpoints.general import router as general_router
+from healthPilot.privacy import GuardrailsClient, PresidioClient
 
 settings = get_settings()
 
@@ -14,10 +15,15 @@ async def lifespan(app: FastAPI):
     Lifecycle events for the FastAPI application.
     This runs on startup and shutdown.
     """
-    # Startup operations (e.g., database connections, cache initialization)
-    print("Starting up...")
+    presidio_ok = await PresidioClient().health_ok()
+    nemo_ok = await GuardrailsClient().health_ok()
+    print(
+        f"Privacy pipeline — Presidio: {'ready' if presidio_ok else 'failed'}, "
+        f"NeMo Guardrails: {'ready' if nemo_ok else 'failed'}"
+    )
+    if not nemo_ok:
+        print("NeMo Guardrails failed to load — check NEMO_LLM_* in .env and logs above.")
     yield
-    # Shutdown operations (e.g., closing connections)
     print("Shutting down...")
 
 
