@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}HealthPilot{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+  <nav class="bg-white border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center gap-4 justify-between">
+      <a href="/" class="text-xl font-bold text-emerald-700">HealthPilot</a>
+      <div class="flex flex-wrap items-center gap-3 text-sm">
+        {% for value, label in categories %}
+        <a href="/products?category={{ value }}" class="text-slate-600 hover:text-emerald-700">{{ label }}</a>
+        {% endfor %}
+      </div>
+      <form action="/products" method="get" class="flex gap-2">
+        <input name="q" value="{{ q|default('') }}" placeholder="Search wellness..." class="border rounded-lg px-3 py-1.5 text-sm w-48">
+        <button type="submit" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-sm">Search</button>
+      </form>
+      <div class="flex items-center gap-3 text-sm">
+        {% if user and user.role.value == 'admin' %}
+        <a href="/admin/products" class="text-emerald-700 font-medium">Admin</a>
+        {% endif %}
+        {% if user %}
+        <span class="text-slate-500">{{ user.name }}</span>
+        <form action="/logout" method="post"><button type="submit" class="text-slate-600 hover:underline">Logout</button></form>
+        {% else %}
+        <a href="/login" class="text-slate-600 hover:underline">Login</a>
+        <a href="/register" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg">Sign up</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  {% if flash %}
+  <div class="max-w-6xl mx-auto px-4 mt-4">
+    <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm">{{ flash }}</div>
+  </div>
+  {% endif %}
+
+  <main class="flex-1 max-w-6xl mx-auto w-full px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t bg-white py-6 text-center text-sm text-slate-500">
+    HealthPilot AI — wellness recommendations powered by behavioral intelligence
+  </footer>
+
+  {% if track_events %}
+  <script src="/static/js/event-tracker.js"></script>
+  <script>
+    EventTracker.init({
+      pageType: {{ page_type|tojson }},
+      productId: {{ (product.id|string)|tojson if product is defined else 'null' }},
+      searchQuery: {{ q|tojson if q is defined and q else 'null' }},
+      category: {{ selected_category.value|tojson if selected_category is defined and selected_category else 'null' }},
+      resultsCount: {{ results_count|tojson if results_count is defined else 'null' }},
+    });
+  </script>
+  {% endif %}
+</body>
+</html>

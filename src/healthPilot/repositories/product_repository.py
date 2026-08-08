@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from healthPilot.models.enums import ProductCategory, VectorSyncStatus
@@ -25,6 +25,7 @@ class ProductRepository:
         *,
         category: ProductCategory | None = None,
         is_active: bool | None = True,
+        q: str | None = None,
         page: int = 1,
         page_size: int = 20,
     ) -> tuple[list[Product], int]:
@@ -37,6 +38,11 @@ class ProductRepository:
         if is_active is not None:
             query = query.where(Product.is_active == is_active)
             count_query = count_query.where(Product.is_active == is_active)
+        if q:
+            pattern = f"%{q}%"
+            text_filter = or_(Product.title.ilike(pattern), Product.description.ilike(pattern))
+            query = query.where(text_filter)
+            count_query = count_query.where(text_filter)
 
         total = (await self.session.execute(count_query)).scalar_one()
         offset = (page - 1) * page_size

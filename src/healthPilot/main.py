@@ -1,8 +1,10 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -15,8 +17,11 @@ from healthPilot.jobs.vector_sync_job import start_vector_sync_scheduler, stop_v
 from healthPilot.privacy import GuardrailsClient, PresidioClient
 from healthPilot.services.auth_service import AuthService
 from healthPilot.vector.qdrant_client import QdrantProductStore
+from healthPilot.web.middleware import AnonSessionMiddleware
+from healthPilot.web.router import router as web_router
 
 settings = get_settings()
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
 async def _postgres_health_ok() -> bool:
@@ -95,7 +100,10 @@ def create_application() -> FastAPI:
         same_site="lax",
         https_only=False,
     )
+    app.add_middleware(AnonSessionMiddleware)
 
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    app.include_router(web_router, tags=["web"])
     app.include_router(general_router, tags=["general"])
     app.include_router(api_router, prefix="/api")
 

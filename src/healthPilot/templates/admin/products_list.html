@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Admin — Products{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold">Admin — Products</h1>
+  <div class="flex gap-3">
+    <form method="post" action="/admin/sync/retry">
+      <button type="submit" class="border border-emerald-600 text-emerald-700 px-4 py-2 rounded-lg text-sm">Retry all sync</button>
+    </form>
+    <a href="/admin/products/new" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm">Add product</a>
+  </div>
+</div>
+<div class="bg-white rounded-xl border overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 text-left">
+      <tr>
+        <th class="p-3">Title</th>
+        <th class="p-3">Category</th>
+        <th class="p-3">Price</th>
+        <th class="p-3">Sync</th>
+        <th class="p-3">Active</th>
+        <th class="p-3">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr class="border-t">
+        <td class="p-3 font-medium">{{ product.title }}</td>
+        <td class="p-3">{{ product.category.value }}</td>
+        <td class="p-3">₹{{ product.price }}</td>
+        <td class="p-3">
+          {% if product.vector_sync_status.value == 'synced' %}
+          <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">synced</span>
+          {% elif product.vector_sync_status.value == 'pending' %}
+          <span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded">pending</span>
+          {% else %}
+          <span class="text-red-700 bg-red-50 px-2 py-0.5 rounded" title="{{ product.last_sync_error or '' }}">failed</span>
+          {% endif %}
+        </td>
+        <td class="p-3">{{ 'yes' if product.is_active else 'no' }}</td>
+        <td class="p-3 flex flex-wrap gap-2">
+          <a href="/admin/products/{{ product.id }}/edit" class="text-emerald-700 hover:underline">Edit</a>
+          <form method="post" action="/admin/sync/products/{{ product.id }}" class="inline">
+            <button type="submit" class="text-slate-600 hover:underline">Resync</button>
+          </form>
+          {% if product.is_active %}
+          <form method="post" action="/admin/products/{{ product.id }}/delete" class="inline" onsubmit="return confirm('Deactivate this product?')">
+            <button type="submit" class="text-red-600 hover:underline">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="p-6 text-center text-slate-500">No products yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

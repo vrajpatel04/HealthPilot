@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}HealthPilot — Discover Wellness{% endblock %}
+{% block content %}
+<section class="text-center py-12">
+  <h1 class="text-4xl font-bold text-slate-900 mb-4">Discover wellness products personalized for you</h1>
+  <p class="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">Browse courses, programs, and guides. HealthPilot learns from how you explore to recommend what you need next.</p>
+  <a href="/products" class="inline-block bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-700">Explore marketplace</a>
+</section>
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for value, label in categories %}
+  <a href="/products?category={{ value }}" class="block bg-white rounded-xl border p-6 hover:border-emerald-400 hover:shadow-sm transition">
+    <h2 class="text-lg font-semibold text-emerald-800">{{ label }}</h2>
+    <p class="text-sm text-slate-500 mt-2">Browse {{ label|lower }} programs and guides</p>
+  </a>
+  {% endfor %}
+</section>
+{% endblock %}

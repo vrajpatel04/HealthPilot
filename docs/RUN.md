@@ -112,3 +112,37 @@ Presidio → NeMo input → LLM → NeMo output → Presidio de-anonymize
 ```
 
 See `/api/v1/privacy/coach` and `/api/v1/privacy/health`.
+
+---
+
+## Phase 2 — Web UI & event tracking
+
+After migrations (`alembic upgrade head` includes the `events` table):
+
+| Pages | URL |
+|-------|-----|
+| Home | http://localhost:8000/ |
+| Marketplace | http://localhost:8000/products |
+| Login | http://localhost:8000/login |
+| Admin dashboard | http://localhost:8000/admin/products |
+
+### Rahul demo flow
+
+1. Visit `/` anonymously (sets `hp_anon_session` cookie)
+2. Browse `/products?category=sleep` or search `?q=sleep`
+3. Open a product detail page (scroll to fire `description_scroll`)
+4. Register / log in at `/register` → `/login`
+5. Revisit the same product → `product_return` event
+6. Log in as admin → `/admin/products/new` to add a product
+
+Events are stored in Postgres via `POST /api/v1/events/batch` (automatic from `event-tracker.js`).
+
+Keyword search: `/products?q=sleep` or `GET /api/v1/products?q=sleep`.
+
+### Seed sample products
+
+```powershell
+uv run python scripts/seed_products.py
+```
+
+Adds 8 wellness products from the project spec (skips any that already exist). Each product is synced to Qdrant via Mesh embeddings.

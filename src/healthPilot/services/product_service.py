@@ -46,12 +46,14 @@ class ProductService:
         self,
         *,
         category=None,
+        q: str | None = None,
         is_active: bool = True,
         page: int = 1,
         page_size: int = 20,
     ) -> tuple[list[Product], int]:
         return await self.products.list_products(
             category=category,
+            q=q,
             is_active=is_active,
             page=page,
             page_size=page_size,
@@ -67,12 +69,14 @@ class ProductService:
         self,
         *,
         category=None,
+        q: str | None = None,
         is_active: bool | None = None,
         page: int = 1,
         page_size: int = 20,
     ) -> tuple[list[Product], int]:
         return await self.products.list_products(
             category=category,
+            q=q,
             is_active=is_active,
             page=page,
             page_size=page_size,

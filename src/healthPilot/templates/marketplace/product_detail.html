@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ product.title }} — HealthPilot{% endblock %}
+{% block content %}
+<article class="bg-white rounded-xl border p-8 max-w-3xl">
+  <span class="text-xs uppercase tracking-wide text-emerald-700">{{ category_labels[product.category] }}</span>
+  <h1 class="text-3xl font-bold mt-2">{{ product.title }}</h1>
+  <p class="text-2xl font-semibold mt-4">₹{{ product.price }}</p>
+  <div id="product-description" class="mt-6 prose prose-slate max-w-none text-slate-700 leading-relaxed">
+    {{ product.description }}
+  </div>
+  <a href="/products" class="inline-block mt-8 text-emerald-700 hover:underline">← Back to marketplace</a>
+</article>
+{% endblock %}

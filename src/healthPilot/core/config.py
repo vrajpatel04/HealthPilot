@@ -58,6 +58,8 @@ class Settings(BaseSettings):
     SESSION_SECRET: str = "change-me-in-production"
     SESSION_COOKIE_NAME: str = "healthpilot_session"
     SESSION_MAX_AGE: int = 60 * 60 * 24 * 7  # 7 days
+    ANON_SESSION_COOKIE_NAME: str = "hp_anon_session"
+    ANON_SESSION_MAX_AGE: int = 60 * 60 * 24 * 30  # 30 days
 
     # Admin bootstrap
     ADMIN_EMAIL: str = ""

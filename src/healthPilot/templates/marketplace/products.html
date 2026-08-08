@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Products — HealthPilot{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold">Wellness marketplace</h1>
+  {% if q %}
+  <p class="text-slate-600 mt-1">Results for “{{ q }}” — {{ total }} product(s)</p>
+  {% elif selected_category %}
+  <p class="text-slate-600 mt-1">{{ category_labels[selected_category] }} — {{ total }} product(s)</p>
+  {% else %}
+  <p class="text-slate-600 mt-1">{{ total }} product(s)</p>
+  {% endif %}
+</div>
+{% if products %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {% for product in products %}
+  <a href="/products/{{ product.id }}" class="bg-white rounded-xl border p-5 hover:shadow-md transition block">
+    <span class="text-xs uppercase tracking-wide text-emerald-700">{{ category_labels[product.category] }}</span>
+    <h2 class="text-lg font-semibold mt-2">{{ product.title }}</h2>
+    <p class="text-sm text-slate-600 mt-2 line-clamp-3">{{ product.description }}</p>
+    <p class="mt-4 font-bold text-slate-900">₹{{ product.price }}</p>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-slate-500">No products found.</p>
+{% endif %}
+{% endblock %}

@@ -16,12 +16,14 @@ router = APIRouter()
 async def list_products(
     db: Annotated[AsyncSession, Depends(get_db)],
     category: ProductCategory | None = None,
+    q: str | None = Query(default=None, min_length=1),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     is_active: bool = Query(default=True),
 ) -> ProductListResponse:
     items, total = await ProductService(db).list_public(
         category=category,
+        q=q,
         is_active=is_active,
         page=page,
         page_size=page_size,
