@@ -52,16 +52,12 @@
     HealthPilot AI — wellness recommendations powered by behavioral intelligence
   </footer>
 
-  {% if track_events %}
+  {% if track_events and product is defined %}
   <script src="/static/js/event-tracker.js"></script>
   <script>
     EventTracker.init({
-      pageType: {{ page_type|tojson }},
-      productId: {{ (product.id|string)|tojson if product is defined else 'null' }},
-      productCategory: {{ product.category.value|tojson if product is defined else 'null' }},
-      searchQuery: {{ q|tojson if q is defined and q else 'null' }},
-      category: {{ selected_category.value|tojson if selected_category is defined and selected_category else 'null' }},
-      resultsCount: {{ results_count|tojson if results_count is defined else 'null' }},
+      productId: {{ product.id|string|tojson }},
+      productCategory: {{ product.category.value|tojson }},
     });
   </script>
   {% endif %}

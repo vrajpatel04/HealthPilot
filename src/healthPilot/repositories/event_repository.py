@@ -24,6 +24,7 @@ class EventRepository:
         user_id: uuid.UUID | None = None,
         hours: int = 168,
         limit: int = 200,
+        event_types: frozenset[EventType] | None = None,
     ) -> list[Event]:
         since = datetime.now(timezone.utc) - timedelta(hours=hours)
         filters = [Event.timestamp >= since]
@@ -31,6 +32,8 @@ class EventRepository:
             filters.append(or_(Event.user_id == user_id, Event.session_id == session_id))
         else:
             filters.append(Event.session_id == session_id)
+        if event_types:
+            filters.append(Event.event_type.in_(event_types))
 
         result = await self.session.execute(
             select(Event).where(*filters).order_by(desc(Event.timestamp)).limit(limit)

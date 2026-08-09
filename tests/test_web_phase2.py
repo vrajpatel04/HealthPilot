@@ -34,3 +34,4 @@ async def test_home_page_renders():
     assert response.status_code == 200
     assert "HealthPilot" in response.text
     assert "hp_anon_session" in response.headers.get("set-cookie", "")
+    assert "event-tracker.js" not in response.text

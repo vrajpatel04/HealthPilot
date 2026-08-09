@@ -18,14 +18,20 @@ from healthPilot.web.templates_env import CATEGORY_LABELS, category_choices, tem
 router = APIRouter()
 
 
-def _base_context(request: Request, user: User | None, *, show_for_you: bool = False) -> dict:
+def _base_context(
+    request: Request,
+    user: User | None,
+    *,
+    show_for_you: bool = False,
+    track_events: bool = False,
+) -> dict:
     return {
         "request": request,
         "user": user,
         "flash": pop_flash(request),
         "categories": category_choices(),
         "category_labels": CATEGORY_LABELS,
-        "track_events": True,
+        "track_events": track_events,
         "show_for_you": show_for_you,
     }
 
@@ -113,7 +119,7 @@ async def product_detail(
         request,
         "marketplace/product_detail.html",
         {
-            **_base_context(request, user, show_for_you=show_for_you),
+            **_base_context(request, user, show_for_you=show_for_you, track_events=True),
             "page_type": "product_detail",
             "product": product,
         },

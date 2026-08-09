@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from healthPilot.core.config import get_settings
 from healthPilot.core.database import AsyncSessionLocal, get_db
 from healthPilot.core.exceptions import AppError
-from healthPilot.schemas.event import EventBatchRequest, EventBatchResponse
+from healthPilot.schemas.event import EventBatchRequest, EventBatchResponse, batch_has_product_interaction
 from healthPilot.services.event_service import EventService
 from healthPilot.services.recommendation_orchestrator import RecommendationOrchestrator
 
@@ -54,5 +54,6 @@ async def ingest_events_batch(
         session_id=session_id,
         user_id=user_id,
     )
-    background_tasks.add_task(_trigger_recommendations, session_id, user_id)
+    if batch_has_product_interaction(body.events):
+        background_tasks.add_task(_trigger_recommendations, session_id, user_id)
     return response

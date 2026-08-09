@@ -15,6 +15,7 @@ from healthPilot.repositories.event_repository import EventRepository
 from healthPilot.repositories.feedback_repository import FeedbackRepository
 from healthPilot.repositories.product_repository import ProductRepository
 from healthPilot.repositories.recommendation_repository import RecommendationRepository
+from healthPilot.schemas.event import PRODUCT_INTERACTION_EVENT_TYPES
 from healthPilot.services.behavior_hash import actor_key, compute_behavior_hash
 from healthPilot.services.trigger_service import TriggerService
 
@@ -211,5 +212,6 @@ class RecommendationOrchestrator:
             user_id=user_id,
             hours=self.settings.BEHAVIOR_WINDOW_HOURS,
             limit=1,
+            event_types=PRODUCT_INTERACTION_EVENT_TYPES,
         )
         return len(events) > 0

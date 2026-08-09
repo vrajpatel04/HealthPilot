@@ -1,5 +1,5 @@
 (function () {
-  const FLUSH_INTERVAL_MS = 5000;
+  const FLUSH_DEBOUNCE_MS = 300;
   const MAX_QUEUE = 10;
   const SCROLL_BANDS = [25, 50, 75, 100];
   const VISIT_KEY_PREFIX = "hp_product_visit_";
@@ -13,6 +13,16 @@
     return new Date().toISOString();
   }
 
+  function scheduleFlush() {
+    if (flushTimer) {
+      clearTimeout(flushTimer);
+    }
+    flushTimer = setTimeout(function () {
+      flushTimer = null;
+      flush(false);
+    }, FLUSH_DEBOUNCE_MS);
+  }
+
   function enqueue(eventType, metadata, productId) {
     queue.push({
       event_type: eventType,
@@ -22,10 +32,16 @@
     });
     if (queue.length >= MAX_QUEUE) {
       flush(false);
+      return;
     }
+    scheduleFlush();
   }
 
   function flush(useBeacon) {
+    if (flushTimer) {
+      clearTimeout(flushTimer);
+      flushTimer = null;
+    }
     if (!queue.length) return;
     const payload = { events: queue.splice(0, queue.length) };
     const body = JSON.stringify(payload);
@@ -82,44 +98,27 @@
     }
   }
 
-  function trackPageEvents() {
-    enqueue("page_view", { page: config.pageType });
+  function trackProductEvents() {
+    if (!config.productId) return;
 
-    if (config.pageType === "product_detail" && config.productId) {
-      enqueue("product_view", { category: config.productCategory || null }, config.productId);
-      trackProductReturn();
-      trackScroll();
-    }
-
-    if (config.pageType === "products" && config.searchQuery) {
-      enqueue("search", {
-        query: config.searchQuery,
-        results_count: config.resultsCount,
-      });
-    }
-
-    if (config.pageType === "products" && config.category) {
-      enqueue("category_filter", { category: config.category });
-    }
+    enqueue("product_view", { category: config.productCategory || null }, config.productId);
+    trackProductReturn();
+    trackScroll();
   }
 
   function trackTimeOnPage() {
+    if (!config.productId) return;
     const duration = Math.round((Date.now() - pageStart) / 1000);
-    enqueue("time_on_page", {
-      duration_seconds: duration,
-      page: window.location.pathname,
-    });
+    enqueue("time_on_page", { duration_seconds: duration }, config.productId);
   }
 
   window.EventTracker = {
     init: function (opts) {
       config = opts || {};
-      pageStart = Date.now();
-      trackPageEvents();
+      if (!config.productId) return;
 
-      flushTimer = setInterval(function () {
-        flush(false);
-      }, FLUSH_INTERVAL_MS);
+      pageStart = Date.now();
+      trackProductEvents();
 
       document.addEventListener("visibilitychange", function () {
         if (document.visibilityState === "hidden") {
