@@ -12,6 +12,9 @@
     <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center gap-4 justify-between">
       <a href="/" class="text-xl font-bold text-emerald-700">HealthPilot</a>
       <div class="flex flex-wrap items-center gap-3 text-sm">
+        {% if show_for_you|default(false) %}
+        <a href="/recommendations" class="text-emerald-700 font-medium hover:underline">For You</a>
+        {% endif %}
         {% for value, label in categories %}
         <a href="/products?category={{ value }}" class="text-slate-600 hover:text-emerald-700">{{ label }}</a>
         {% endfor %}
@@ -55,6 +58,7 @@
     EventTracker.init({
       pageType: {{ page_type|tojson }},
       productId: {{ (product.id|string)|tojson if product is defined else 'null' }},
+      productCategory: {{ product.category.value|tojson if product is defined else 'null' }},
       searchQuery: {{ q|tojson if q is defined and q else 'null' }},
       category: {{ selected_category.value|tojson if selected_category is defined and selected_category else 'null' }},
       resultsCount: {{ results_count|tojson if results_count is defined else 'null' }},

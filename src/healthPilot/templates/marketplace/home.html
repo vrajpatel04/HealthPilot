@@ -1,6 +1,17 @@
 {% extends "base.html" %}
 {% block title %}HealthPilot — Discover Wellness{% endblock %}
 {% block content %}
+{% if recommendation and recommendation.primary_product %}
+<section class="mb-10 bg-gradient-to-r from-emerald-50 to-white border border-emerald-100 rounded-2xl p-6">
+  <p class="text-sm font-medium text-emerald-700 mb-1">Recommended for you</p>
+  <h2 class="text-xl font-bold text-slate-900 mb-2">{{ recommendation.primary_product.title }}</h2>
+  <p class="text-slate-700 mb-4">{{ recommendation.message[:180] }}{% if recommendation.message|length > 180 %}...{% endif %}</p>
+  <div class="flex flex-wrap gap-3">
+    <a href="/products/{{ recommendation.primary_product.id }}" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-emerald-700">View product</a>
+    <a href="/recommendations" class="text-emerald-700 text-sm hover:underline self-center">See all recommendations →</a>
+  </div>
+</section>
+{% endif %}
 <section class="text-center py-12">
   <h1 class="text-4xl font-bold text-slate-900 mb-4">Discover wellness products personalized for you</h1>
   <p class="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">Browse courses, programs, and guides. HealthPilot learns from how you explore to recommend what you need next.</p>

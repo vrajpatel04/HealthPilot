@@ -5,10 +5,12 @@ from fastapi import Depends, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from healthPilot.core.config import get_settings
 from healthPilot.core.database import get_db
 from healthPilot.models.enums import UserRole
 from healthPilot.models.user import User
 from healthPilot.repositories.user_repository import UserRepository
+from healthPilot.services.recommendation_orchestrator import RecommendationOrchestrator
 
 
 async def get_optional_user(
@@ -41,3 +43,26 @@ async def require_admin_web(
 
 def pop_flash(request: Request) -> str | None:
     return request.session.pop("flash", None)
+
+
+def set_flash(request: Request, message: str) -> None:
+    request.session["flash"] = message
+
+
+async def show_for_you_nav(
+    request: Request,
+    db: AsyncSession,
+    user: User | None,
+) -> bool:
+    settings = get_settings()
+    session_id = request.cookies.get(settings.ANON_SESSION_COOKIE_NAME)
+    if not session_id:
+        return False
+
+    orchestrator = RecommendationOrchestrator(db)
+    if await orchestrator.get_latest(session_id=session_id, user_id=user.id if user else None):
+        return True
+    return await orchestrator.has_browsing_activity(
+        session_id=session_id,
+        user_id=user.id if user else None,
+    )

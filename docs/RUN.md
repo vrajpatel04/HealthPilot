@@ -146,3 +146,55 @@ uv run python scripts/seed_products.py
 ```
 
 Adds 8 wellness products from the project spec (skips any that already exist). Each product is synced to Qdrant via Mesh embeddings.
+
+---
+
+## Phase 3 — Recommendations & RAG
+
+Run migration `003` (creates `user_memories`, `recommendations`, `feedback`):
+
+```powershell
+uv run alembic upgrade head
+```
+
+### Optional Redis
+
+```powershell
+docker run -p 6379:6379 redis:7
+```
+
+Set in `.env`:
+
+```env
+REDIS_URL=redis://localhost:6379/0
+```
+
+Without Redis, recommendations still work via Postgres-only caching.
+
+### Seed RAG knowledge base
+
+```powershell
+uv run python scripts/seed_rag.py
+```
+
+Populates `healthpilot_knowledge` in Qdrant from `data/knowledge/*.md`.
+
+### Phase 3 URLs
+
+| Pages / API | URL |
+|-------------|-----|
+| For You page | http://localhost:8000/recommendations |
+| Recommendations API | `GET /api/v1/recommendations` |
+| Force refresh | `POST /api/v1/recommendations/refresh` |
+| Feedback | `POST /api/v1/recommendations/feedback` |
+
+### Rahul journey (Phase 3)
+
+1. Browse anonymously and search `sleep improvement` → background trigger may generate a recommendation
+2. Visit `/` — homepage widget shows top pick when available
+3. Open `/recommendations` — full message, secondary pick, and “Why recommended?”
+4. Click **Interested** or **Not for me** to record feedback
+5. Click **Refresh recommendations** after more browsing
+6. Log in — future recommendations link to your `user_id`
+
+Conservative auto-triggers: new search, product return, or category filter + 2 views in 30 minutes (5-minute cooldown between runs).

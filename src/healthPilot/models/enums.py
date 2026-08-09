@@ -28,3 +28,12 @@ class EventType(str, enum.Enum):
     description_scroll = "description_scroll"
     product_return = "product_return"
     time_on_page = "time_on_page"
+
+
+class FeedbackAction(str, enum.Enum):
+    displayed = "displayed"
+    clicked = "clicked"
+    saved = "saved"
+    ignored = "ignored"
+    started = "started"
+    completed = "completed"

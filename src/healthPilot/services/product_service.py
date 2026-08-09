@@ -8,6 +8,7 @@ from healthPilot.models.enums import VectorSyncStatus
 from healthPilot.models.product import Product
 from healthPilot.repositories.product_repository import ProductRepository
 from healthPilot.schemas.product import ProductCreateRequest, ProductUpdateRequest
+from healthPilot.services.product_cache import invalidate_product_cache
 from healthPilot.services.vector_sync_service import VectorSyncService
 
 
@@ -30,6 +31,7 @@ class ProductService:
         )
         product = await self.products.create(product)
         await self.session.commit()
+        await invalidate_product_cache()
         await self.sync_service.sync_product(product.id, force=True)
         refreshed = await self.products.get_by_id(product.id)
         if refreshed is None:
@@ -104,6 +106,7 @@ class ProductService:
 
         await self.products.save(product)
         await self.session.commit()
+        await invalidate_product_cache()
 
         if embed_changed or "is_active" in updates:
             await self.sync_service.sync_product(product.id, force=True)
@@ -117,6 +120,7 @@ class ProductService:
         product = await self.get_admin(product_id)
         product = await self.products.delete_soft(product)
         await self.session.commit()
+        await invalidate_product_cache()
         await self.sync_service.sync_product(product.id, force=True)
         refreshed = await self.products.get_by_id(product.id)
         if refreshed is None:

@@ -86,7 +86,7 @@
     enqueue("page_view", { page: config.pageType });
 
     if (config.pageType === "product_detail" && config.productId) {
-      enqueue("product_view", {}, config.productId);
+      enqueue("product_view", { category: config.productCategory || null }, config.productId);
       trackProductReturn();
       trackScroll();
     }

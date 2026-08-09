@@ -94,6 +94,22 @@ class Settings(BaseSettings):
     VECTOR_SYNC_INTERVAL_SECONDS: int = 30
     VECTOR_SYNC_MAX_ATTEMPTS: int = 10
 
+    # Redis (optional)
+    REDIS_URL: str = ""
+
+    # RAG
+    KNOWLEDGE_COLLECTION: str = "healthpilot_knowledge"
+    RAG_CHUNK_SIZE: int = 1000
+    RAG_CHUNK_OVERLAP: int = 200
+    RAG_RETRIEVAL_K: int = 3
+
+    # Recommendations
+    RECOMMENDATION_TTL_HOURS: int = 24
+    TRIGGER_COOLDOWN_SECONDS: int = 300
+    BEHAVIOR_WINDOW_HOURS: int = 168
+    PRODUCT_LIST_CACHE_TTL: int = 60
+    PRODUCT_DETAIL_CACHE_TTL: int = 300
+
     # Logging
     LOG_LEVEL: str = "INFO"
 

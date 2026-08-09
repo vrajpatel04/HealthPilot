@@ -10,6 +10,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from healthPilot.api.endpoints.general import router as general_router
 from healthPilot.api.routes import router as api_router
+from healthPilot.cache.redis_cache import redis_status
 from healthPilot.core.config import get_settings
 from healthPilot.core.database import AsyncSessionLocal, engine
 from healthPilot.core.exceptions import AppError
@@ -39,6 +40,7 @@ async def lifespan(app: FastAPI):
     nemo_ok = await GuardrailsClient().health_ok()
     postgres_ok = await _postgres_health_ok()
     qdrant_ok = await QdrantProductStore().health_ok()
+    redis_state = await redis_status()
 
     print(
         f"Privacy pipeline — Presidio: {'ready' if presidio_ok else 'failed'}, "
@@ -46,6 +48,7 @@ async def lifespan(app: FastAPI):
     )
     print(f"Database — PostgreSQL: {'ready' if postgres_ok else 'failed'}")
     print(f"Vector store — Qdrant: {'ready' if qdrant_ok else 'failed'}")
+    print(f"Cache — Redis: {redis_state}")
 
     if postgres_ok:
         async with AsyncSessionLocal() as session:
@@ -59,6 +62,13 @@ async def lifespan(app: FastAPI):
         print("NeMo Guardrails failed to load — check NEMO_LLM_* in .env and logs above.")
     if not postgres_ok:
         print("PostgreSQL unavailable — check DATABASE_URL in .env.")
+    if redis_state == "failed":
+        print("Redis unavailable — falling back to NullCache. Check REDIS_URL in .env.")
+    elif redis_state == "read-only":
+        print(
+            "Redis is read-only — cache reads work but writes are blocked. "
+            "Use the read-write Upstash token (not default_ro) in REDIS_URL."
+        )
 
     yield
 

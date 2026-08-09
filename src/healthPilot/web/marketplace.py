@@ -5,18 +5,20 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from healthPilot.core.config import get_settings
 from healthPilot.core.database import get_db
 from healthPilot.core.exceptions import NotFoundError
 from healthPilot.models.enums import ProductCategory
 from healthPilot.models.user import User
 from healthPilot.services.product_service import ProductService
-from healthPilot.web.deps import get_optional_user, pop_flash
+from healthPilot.services.recommendation_orchestrator import RecommendationOrchestrator
+from healthPilot.web.deps import get_optional_user, pop_flash, show_for_you_nav
 from healthPilot.web.templates_env import CATEGORY_LABELS, category_choices, templates
 
 router = APIRouter()
 
 
-def _base_context(request: Request, user: User | None) -> dict:
+def _base_context(request: Request, user: User | None, *, show_for_you: bool = False) -> dict:
     return {
         "request": request,
         "user": user,
@@ -24,6 +26,7 @@ def _base_context(request: Request, user: User | None) -> dict:
         "categories": category_choices(),
         "category_labels": CATEGORY_LABELS,
         "track_events": True,
+        "show_for_you": show_for_you,
     }
 
 
@@ -33,10 +36,26 @@ async def home(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User | None, Depends(get_optional_user)],
 ):
+    settings = get_settings()
+    session_id = request.cookies.get(settings.ANON_SESSION_COOKIE_NAME)
+    recommendation = None
+    show_for_you = await show_for_you_nav(request, db, user)
+    if session_id:
+        orchestrator = RecommendationOrchestrator(db)
+        recommendation = await orchestrator.get_latest(
+            session_id=session_id,
+            user_id=user.id if user else None,
+        )
+
     return templates.TemplateResponse(
         request,
         "marketplace/home.html",
-        {**_base_context(request, user), "page_type": "home"},
+        {
+            **_base_context(request, user, show_for_you=show_for_you),
+            "page_type": "home",
+            "recommendation": recommendation,
+            "show_for_you": show_for_you,
+        },
     )
 
 
@@ -55,11 +74,12 @@ async def products_list(
         page=page,
         page_size=12,
     )
+    show_for_you = await show_for_you_nav(request, db, user)
     return templates.TemplateResponse(
         request,
         "marketplace/products.html",
         {
-            **_base_context(request, user),
+            **_base_context(request, user, show_for_you=show_for_you),
             "page_type": "products",
             "products": items,
             "total": total,
@@ -84,15 +104,16 @@ async def product_detail(
         return templates.TemplateResponse(
             request,
             "marketplace/not_found.html",
-            {**_base_context(request, user), "page_type": "not_found"},
+            {**_base_context(request, user, show_for_you=await show_for_you_nav(request, db, user)), "page_type": "not_found"},
             status_code=404,
         )
 
+    show_for_you = await show_for_you_nav(request, db, user)
     return templates.TemplateResponse(
         request,
         "marketplace/product_detail.html",
         {
-            **_base_context(request, user),
+            **_base_context(request, user, show_for_you=show_for_you),
             "page_type": "product_detail",
             "product": product,
         },

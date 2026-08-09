@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}For You — HealthPilot{% endblock %}
+{% block content %}
+<section class="mb-8">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-slate-900">Recommendations for you</h1>
+      <p class="text-slate-600 mt-2">Personalized wellness picks based on how you browse.</p>
+    </div>
+    <form action="/recommendations/refresh" method="post">
+      <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-emerald-700">
+        Refresh recommendations
+      </button>
+    </form>
+  </div>
+</section>
+
+{% if recommendation and recommendation.primary_product %}
+<section class="bg-white rounded-2xl border border-emerald-100 shadow-sm p-8 mb-8">
+  <p class="text-sm uppercase tracking-wide text-emerald-700 font-medium mb-2">Top pick</p>
+  <h2 class="text-2xl font-bold text-slate-900 mb-3">{{ recommendation.primary_product.title }}</h2>
+  <p class="text-slate-700 mb-4">{{ recommendation.message }}</p>
+  <p class="text-sm text-slate-500 mb-6">Confidence: {{ (recommendation.confidence * 100)|round|int }}%</p>
+  <div class="flex flex-wrap gap-3">
+    <a href="/products/{{ recommendation.primary_product.id }}" class="bg-emerald-600 text-white px-5 py-2.5 rounded-lg hover:bg-emerald-700">View product</a>
+    <form action="/recommendations/feedback" method="post" class="inline">
+      <input type="hidden" name="recommendation_id" value="{{ recommendation.id }}">
+      <input type="hidden" name="action" value="clicked">
+      <button type="submit" class="border border-emerald-600 text-emerald-700 px-5 py-2.5 rounded-lg hover:bg-emerald-50">Interested</button>
+    </form>
+    <form action="/recommendations/feedback" method="post" class="inline">
+      <input type="hidden" name="recommendation_id" value="{{ recommendation.id }}">
+      <input type="hidden" name="action" value="ignored">
+      <button type="submit" class="border border-slate-300 text-slate-600 px-5 py-2.5 rounded-lg hover:bg-slate-50">Not for me</button>
+    </form>
+  </div>
+</section>
+
+{% if recommendation.secondary_product %}
+<section class="bg-white rounded-xl border p-6 mb-8">
+  <p class="text-sm text-emerald-700 font-medium mb-2">Also consider</p>
+  <h3 class="text-xl font-semibold">{{ recommendation.secondary_product.title }}</h3>
+  <p class="text-sm text-slate-600 mt-2">{{ recommendation.secondary_product.description[:160] }}...</p>
+  <a href="/products/{{ recommendation.secondary_product.id }}" class="inline-block mt-4 text-emerald-700 hover:underline">View details →</a>
+</section>
+{% endif %}
+
+{% if recommendation.why_recommended %}
+<section class="bg-slate-50 rounded-xl border p-6">
+  <h3 class="text-lg font-semibold mb-3">Why recommended?</h3>
+  <ul class="list-disc list-inside text-slate-700 space-y-2">
+    {% for reason in recommendation.why_recommended %}
+    <li>{{ reason }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% else %}
+<section class="text-center py-16 bg-white rounded-2xl border">
+  <h2 class="text-xl font-semibold text-slate-800 mb-2">No recommendations yet</h2>
+  <p class="text-slate-600 mb-6">Browse the marketplace and search for topics you care about — we'll learn and suggest programs for you.</p>
+  <a href="/products" class="inline-block bg-emerald-600 text-white px-6 py-3 rounded-xl">Browse marketplace</a>
+</section>
+{% endif %}
+{% endblock %}
