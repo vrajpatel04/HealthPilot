@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Admin — Products{% endblock %}
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-bold">Admin — Products</h1>
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+  <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Admin — Products</h1>
   <div class="flex gap-3">
     <form method="post" action="/admin/sync/retry">
-      <button type="submit" class="border border-emerald-600 text-emerald-700 px-4 py-2 rounded-lg text-sm">Retry all sync</button>
+      <button type="submit" class="border border-emerald-600 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-lg text-sm btn-press">Retry all sync</button>
     </form>
-    <a href="/admin/products/new" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm">Add product</a>
+    <a href="/admin/products/new" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm btn-press font-medium">Add product</a>
   </div>
 </div>
-<div class="bg-white rounded-xl border overflow-hidden">
-  <table class="w-full text-sm">
-    <thead class="bg-slate-50 text-left">
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-x-auto shadow-sm">
+  <table class="w-full text-sm min-w-[600px]">
+    <thead class="bg-slate-50 dark:bg-slate-800/60 text-left text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
       <tr>
         <th class="p-3">Title</th>
         <th class="p-3">Category</th>
@@ -22,36 +22,36 @@
         <th class="p-3">Actions</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
       {% for product in products %}
-      <tr class="border-t">
-        <td class="p-3 font-medium">{{ product.title }}</td>
-        <td class="p-3">{{ product.category.value }}</td>
-        <td class="p-3">₹{{ product.price }}</td>
+      <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+        <td class="p-3 font-medium text-slate-900 dark:text-slate-100">{{ product.title }}</td>
+        <td class="p-3 text-slate-600 dark:text-slate-400">{{ product.category.value }}</td>
+        <td class="p-3 text-slate-900 dark:text-slate-100">₹{{ product.price }}</td>
         <td class="p-3">
           {% if product.vector_sync_status.value == 'synced' %}
-          <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">synced</span>
+          <span class="text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded text-xs">synced</span>
           {% elif product.vector_sync_status.value == 'pending' %}
-          <span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded">pending</span>
+          <span class="text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded text-xs">pending</span>
           {% else %}
-          <span class="text-red-700 bg-red-50 px-2 py-0.5 rounded" title="{{ product.last_sync_error or '' }}">failed</span>
+          <span class="text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 px-2 py-0.5 rounded text-xs" title="{{ product.last_sync_error or '' }}">failed</span>
           {% endif %}
         </td>
-        <td class="p-3">{{ 'yes' if product.is_active else 'no' }}</td>
+        <td class="p-3 text-slate-600 dark:text-slate-400">{{ 'yes' if product.is_active else 'no' }}</td>
         <td class="p-3 flex flex-wrap gap-2">
-          <a href="/admin/products/{{ product.id }}/edit" class="text-emerald-700 hover:underline">Edit</a>
+          <a href="/admin/products/{{ product.id }}/edit" class="text-emerald-700 dark:text-emerald-400 hover:underline">Edit</a>
           <form method="post" action="/admin/sync/products/{{ product.id }}" class="inline">
-            <button type="submit" class="text-slate-600 hover:underline">Resync</button>
+            <button type="submit" class="text-slate-600 dark:text-slate-400 hover:underline">Resync</button>
           </form>
           {% if product.is_active %}
           <form method="post" action="/admin/products/{{ product.id }}/delete" class="inline" onsubmit="return confirm('Deactivate this product?')">
-            <button type="submit" class="text-red-600 hover:underline">Delete</button>
+            <button type="submit" class="text-red-600 dark:text-red-400 hover:underline">Delete</button>
           </form>
           {% endif %}
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="6" class="p-6 text-center text-slate-500">No products yet.</td></tr>
+      <tr><td colspan="6" class="p-6 text-center text-slate-500 dark:text-slate-400">No products yet.</td></tr>
       {% endfor %}
     </tbody>
   </table>

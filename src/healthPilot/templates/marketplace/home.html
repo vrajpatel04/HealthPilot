@@ -2,26 +2,26 @@
 {% block title %}HealthPilot — Discover Wellness{% endblock %}
 {% block content %}
 {% if recommendation and recommendation.primary_product %}
-<section class="mb-10 bg-gradient-to-r from-emerald-50 to-white border border-emerald-100 rounded-2xl p-6">
-  <p class="text-sm font-medium text-emerald-700 mb-1">Recommended for you</p>
-  <h2 class="text-xl font-bold text-slate-900 mb-2">{{ recommendation.primary_product.title }}</h2>
-  <p class="text-slate-700 mb-4">{{ recommendation.message[:180] }}{% if recommendation.message|length > 180 %}...{% endif %}</p>
+<section class="mb-10 bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-950/40 dark:to-slate-900 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-6 shadow-sm card-hover">
+  <p class="text-sm font-medium text-emerald-700 dark:text-emerald-400 mb-1">Recommended for you</p>
+  <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">{{ recommendation.primary_product.title }}</h2>
+  <p class="text-slate-700 dark:text-slate-300 mb-4">{{ recommendation.message[:180] }}{% if recommendation.message|length > 180 %}...{% endif %}</p>
   <div class="flex flex-wrap gap-3">
-    <a href="/products/{{ recommendation.primary_product.id }}" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-emerald-700">View product</a>
-    <a href="/recommendations" class="text-emerald-700 text-sm hover:underline self-center">See all recommendations →</a>
+    <a href="/products/{{ recommendation.primary_product.id }}" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-emerald-700 btn-press">View product</a>
+    <a href="/recommendations" class="text-emerald-700 dark:text-emerald-400 text-sm hover:underline self-center">See all recommendations →</a>
   </div>
 </section>
 {% endif %}
-<section class="text-center py-12">
-  <h1 class="text-4xl font-bold text-slate-900 mb-4">Discover wellness products personalized for you</h1>
-  <p class="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">Browse courses, programs, and guides. HealthPilot learns from how you explore to recommend what you need next.</p>
-  <a href="/products" class="inline-block bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-700">Explore marketplace</a>
+<section class="text-center py-10 sm:py-14">
+  <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight">Discover wellness products personalized for you</h1>
+  <p class="text-base sm:text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-2xl mx-auto">Browse courses, programs, and guides. HealthPilot learns from how you explore to recommend what you need next.</p>
+  <a href="/products" class="inline-block bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-emerald-700 btn-press shadow-sm">Explore marketplace</a>
 </section>
-<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
   {% for value, label in categories %}
-  <a href="/products?category={{ value }}" class="block bg-white rounded-xl border p-6 hover:border-emerald-400 hover:shadow-sm transition">
-    <h2 class="text-lg font-semibold text-emerald-800">{{ label }}</h2>
-    <p class="text-sm text-slate-500 mt-2">Browse {{ label|lower }} programs and guides</p>
+  <a href="/products?category={{ value }}" class="block bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 card-hover hover:border-emerald-400 dark:hover:border-emerald-500 shadow-sm">
+    <h2 class="text-lg font-semibold text-emerald-800 dark:text-emerald-400">{{ label }}</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Browse {{ label|lower }} programs and guides</p>
   </a>
   {% endfor %}
 </section>
