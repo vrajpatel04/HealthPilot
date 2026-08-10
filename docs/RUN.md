@@ -198,3 +198,52 @@ Populates `healthpilot_knowledge` in Qdrant from `data/knowledge/*.md`.
 6. Log in — future recommendations link to your `user_id`
 
 Conservative auto-triggers: new search, product return, or category filter + 2 views in 30 minutes (5-minute cooldown between runs).
+
+---
+
+## Phase 4 — Health Signals
+
+Run migration `004` (creates `lifestyle_daily_logs`, `health_profiles`, `blood_reports`):
+
+```powershell
+uv run alembic upgrade head
+```
+
+### Daily check-in (required UX)
+
+| Pages / API | URL |
+|-------------|-----|
+| Daily check-in | http://localhost:8000/lifestyle |
+| Lifestyle API | `POST /api/v1/lifestyle/daily` |
+| Health profile | `GET /api/v1/lifestyle/profile` |
+
+- **Once per day** — submitting again updates today's row (upsert)
+- Login required for all lifestyle endpoints
+
+### Blood reports (optional)
+
+| Pages / API | URL |
+|-------------|-----|
+| Upload page | http://localhost:8000/health/reports |
+| Blood reports API | `POST /api/v1/blood-reports` |
+
+Blood reports are **fully optional** — recommendations work without them.
+
+### Qdrant user memory
+
+Phase 4 writes de-identified snippets to `healthpilot_user_memories` on daily check-in and completed blood reports. Collection is created automatically on first write.
+
+### Phase 4 demo flow
+
+**Primary path (no blood report):**
+
+1. Log in
+2. Browse marketplace (Phase 2/3 events)
+3. Visit `/lifestyle` — complete daily check-in (e.g. low sleep, high stress)
+4. Visit `/recommendations` — message should reflect lifestyle context
+
+**Optional path:**
+
+5. Visit `/health/reports` — upload a PDF lab report
+6. Refresh recommendations after processing completes
+

@@ -110,6 +110,18 @@ class Settings(BaseSettings):
     PRODUCT_LIST_CACHE_TTL: int = 60
     PRODUCT_DETAIL_CACHE_TTL: int = 300
 
+    # User memory vectors
+    USER_MEMORY_COLLECTION: str = "healthpilot_user_memories"
+    USER_MEMORY_RETRIEVAL_K: int = 5
+
+    # Lifestyle
+    LIFESTYLE_AGGREGATE_WINDOW_DAYS: int = 7
+    LIFESTYLE_TREND_SLEEP_DELTA_HOURS: float = 1.0
+
+    # Blood reports
+    BLOOD_REPORT_UPLOAD_DIR: str = "uploads/blood_reports"
+    BLOOD_REPORT_MAX_BYTES: int = 10485760
+
     # Logging
     LOG_LEVEL: str = "INFO"
 

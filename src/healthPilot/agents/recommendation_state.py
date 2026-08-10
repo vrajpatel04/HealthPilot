@@ -24,4 +24,7 @@ class RecommendationState(TypedDict, total=False):
     why_recommended: list[str]
     behavior_hash: str
     errors: list[str]
+    lifestyle_snapshot: dict[str, Any]
+    blood_report_summary: dict[str, Any] | None
+    episodic_memories: list[dict[str, Any]]
     recommendation_id: uuid.UUID | None

@@ -10,9 +10,12 @@ from langchain_core.runnables.config import RunnableConfig
 from healthPilot.agents.llm_helper import run_user_facing_llm
 from healthPilot.agents.recommendation_state import RecommendationState
 from healthPilot.services.behavior_service import BehaviorService
+from healthPilot.services.blood_report_service import BloodReportService
 from healthPilot.services.evaluation_service import EvaluationService
+from healthPilot.services.health_profile_service import HealthProfileService
 from healthPilot.services.memory_service import MemoryService
 from healthPilot.services.retrieval_service import RetrievalService
+from healthPilot.services.user_memory_vector_service import UserMemoryVectorService
 
 
 def _session(config: RunnableConfig) -> Any:
@@ -44,7 +47,18 @@ async def load_context_node(
         }
         for e in events
     ]
-    return {"events": serialized}
+
+    lifestyle_snapshot: dict[str, Any] = {}
+    blood_report_summary = None
+    if user_id:
+        lifestyle_snapshot = await HealthProfileService(session).get_snapshot(user_id)
+        blood_report_summary = await BloodReportService(session).get_summary_for_pipeline(user_id)
+
+    return {
+        "events": serialized,
+        "lifestyle_snapshot": lifestyle_snapshot,
+        "blood_report_summary": blood_report_summary,
+    }
 
 
 async def behavior_agent_node(
@@ -66,9 +80,21 @@ async def behavior_agent_node(
 
     summary = behavior_svc.summarize(events)
     why = behavior_svc.build_why_recommended(events, summary)
+    lifestyle = state.get("lifestyle_snapshot") or {}
+    if lifestyle.get("sleep_average") is not None and lifestyle["sleep_average"] < 6:
+        summary["lifestyle_gaps"] = summary.get("lifestyle_gaps", []) + ["low_sleep"]
+        why.append("Your recent sleep average is below 6 hours")
+    if lifestyle.get("stress_average") is not None and lifestyle["stress_average"] >= 4:
+        summary["lifestyle_gaps"] = summary.get("lifestyle_gaps", []) + ["high_stress"]
+        why.append("You've reported elevated stress recently")
+
     query = summary.get("primary_interest") or "general wellness"
     if summary.get("secondary_interest"):
         query = f"{query} {summary['secondary_interest']}"
+    if lifestyle.get("sleep_average") is not None and lifestyle["sleep_average"] < 6:
+        query = f"{query} sleep improvement"
+    if lifestyle.get("stress_average") is not None and lifestyle["stress_average"] >= 4:
+        query = f"{query} stress management"
 
     return {
         "behavior_summary": summary,
@@ -93,7 +119,26 @@ async def memory_agent_node(
             user_id=user_id,
             behavior=behavior,
         )
-    return {"user_memory": memory}
+
+    episodic: list[dict[str, Any]] = []
+    if user_id:
+        configurable = config.get("configurable") or {}
+        settings = configurable["settings"]
+        lifestyle = state.get("lifestyle_snapshot") or {}
+        blood = state.get("blood_report_summary") or {}
+        query_parts = [
+            behavior.get("primary_interest") or "",
+            str(lifestyle.get("sleep_average") or ""),
+            str(lifestyle.get("stress_average") or ""),
+            " ".join(blood.get("flags") or []),
+        ]
+        query = " ".join(part for part in query_parts if part).strip() or "wellness"
+        episodic = await UserMemoryVectorService().search(
+            user_id, query, limit=settings.USER_MEMORY_RETRIEVAL_K
+        )
+        memory["episodic_memories"] = episodic
+
+    return {"user_memory": memory, "episodic_memories": episodic}
 
 
 async def retrieval_agent_node(
@@ -117,7 +162,15 @@ async def evaluation_agent_node(
     candidates = state.get("product_candidates") or []
     behavior = state.get("behavior_summary") or {}
     memory = state.get("user_memory") or {}
-    scored = evaluator.score_candidates(candidates, behavior, memory)
+    lifestyle = state.get("lifestyle_snapshot") or {}
+    health_profile = HealthProfileService.profile_dict_from_snapshot(lifestyle)
+    scored = evaluator.score_candidates(
+        candidates,
+        behavior,
+        memory,
+        health_profile=health_profile,
+        blood_report_summary=state.get("blood_report_summary"),
+    )
     return {"evaluated_candidates": scored}
 
 

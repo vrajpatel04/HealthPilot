@@ -53,3 +53,8 @@ class TriggerService:
             and (e.metadata_ or {}).get("category") == category
         ]
         return len(views) >= 2
+
+    def should_trigger_after_lifestyle(
+        self, *, material_change: bool, trend_alert: bool = False
+    ) -> bool:
+        return material_change or trend_alert

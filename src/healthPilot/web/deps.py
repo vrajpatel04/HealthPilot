@@ -27,6 +27,17 @@ async def get_optional_user(
     return await UserRepository(db).get_by_id(user_id)
 
 
+async def require_logged_in_user(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> User:
+    user = await get_optional_user(request, db)
+    if user is None:
+        request.session["flash"] = "Please log in to access your daily check-in."
+        return RedirectResponse(url="/login", status_code=303)  # type: ignore[return-value]
+    return user
+
+
 async def require_admin_web(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],

@@ -17,6 +17,8 @@ from healthPilot.repositories.product_repository import ProductRepository
 from healthPilot.repositories.recommendation_repository import RecommendationRepository
 from healthPilot.schemas.event import PRODUCT_INTERACTION_EVENT_TYPES
 from healthPilot.services.behavior_hash import actor_key, compute_behavior_hash
+from healthPilot.services.health_hash import compute_health_hash
+from healthPilot.services.health_profile_service import HealthProfileService
 from healthPilot.services.trigger_service import TriggerService
 
 
@@ -50,7 +52,26 @@ class RecommendationOrchestrator:
             }
             for e in recent
         ]
-        return compute_behavior_hash(serialized), serialized
+        health_profile = None
+        blood_report_id = None
+        if user_id:
+            snapshot = await HealthProfileService(self.session).get_snapshot(user_id)
+            health_profile = HealthProfileService.profile_dict_from_snapshot(snapshot)
+            from healthPilot.repositories.blood_report_repository import BloodReportRepository
+
+            latest_report = await BloodReportRepository(self.session).get_latest_completed(user_id)
+            if latest_report:
+                blood_report_id = str(latest_report.id)
+
+        if health_profile or blood_report_id:
+            behavior_hash = compute_health_hash(
+                events=serialized,
+                health_profile=health_profile,
+                blood_report_id=blood_report_id,
+            )
+        else:
+            behavior_hash = compute_behavior_hash(serialized)
+        return behavior_hash, serialized
 
     async def _cooldown_active(self, actor: str) -> bool:
         key = f"trigger:cooldown:{actor}"
@@ -122,6 +143,7 @@ class RecommendationOrchestrator:
         user_id: uuid.UUID | None,
         manual: bool = False,
         bypass_cooldown: bool = False,
+        lifestyle_trigger: bool = False,
     ) -> dict[str, Any] | None:
         actor = self._cache_actor(session_id=session_id, user_id=user_id)
         behavior_hash, _ = await self._current_behavior_hash(
@@ -142,10 +164,10 @@ class RecommendationOrchestrator:
             user_id=user_id,
             hours=self.settings.BEHAVIOR_WINDOW_HOURS,
         )
-        if not recent_events and not manual:
+        if not recent_events and not manual and not lifestyle_trigger:
             return None
 
-        if not manual and not bypass_cooldown:
+        if not manual and not bypass_cooldown and not lifestyle_trigger:
             if not self.triggers.should_trigger(recent_events, manual=False):
                 return await self.get_latest(session_id=session_id, user_id=user_id)
 
@@ -184,6 +206,25 @@ class RecommendationOrchestrator:
         self, *, session_id: str, user_id: uuid.UUID | None
     ) -> None:
         await self.run_pipeline(session_id=session_id, user_id=user_id, manual=False)
+
+    async def maybe_trigger_after_lifestyle(
+        self,
+        *,
+        session_id: str,
+        user_id: uuid.UUID,
+        material_change: bool = True,
+        trend_alert: bool = False,
+    ) -> None:
+        if not self.triggers.should_trigger_after_lifestyle(
+            material_change=material_change, trend_alert=trend_alert
+        ):
+            return
+        await self.run_pipeline(
+            session_id=session_id,
+            user_id=user_id,
+            manual=False,
+            lifestyle_trigger=True,
+        )
 
     async def record_feedback(
         self,

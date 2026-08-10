@@ -37,3 +37,17 @@ class FeedbackAction(str, enum.Enum):
     ignored = "ignored"
     started = "started"
     completed = "completed"
+
+
+class ActivityLevel(str, enum.Enum):
+    sedentary = "sedentary"
+    light = "light"
+    moderate = "moderate"
+    active = "active"
+
+
+class BloodReportStatus(str, enum.Enum):
+    pending = "pending"
+    processing = "processing"
+    completed = "completed"
+    failed = "failed"

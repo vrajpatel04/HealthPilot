@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Health Reports — HealthPilot{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Health Reports</h1>
+    <p class="text-slate-600 dark:text-slate-400 mt-1 text-sm">
+      Optional — upload a lab report for deeper personalization. This is never required.
+    </p>
+  </div>
+
+  <form method="post" action="/health/reports" enctype="multipart/form-data"
+        class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 mb-6 shadow-sm">
+    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Upload PDF or image</label>
+    <input type="file" name="file" accept=".pdf,image/jpeg,image/png" required
+           class="block w-full text-sm text-slate-600 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:text-emerald-700">
+    <button type="submit" class="mt-4 w-full bg-emerald-600 text-white py-2.5 rounded-lg font-medium hover:bg-emerald-700 btn-press">
+      Upload report
+    </button>
+    <p class="text-xs text-slate-500 mt-3">
+      Not a diagnostic tool. Consult a healthcare professional for medical advice.
+    </p>
+  </form>
+
+  {% if reports %}
+  <div class="space-y-3">
+    {% for report in reports %}
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+      <div class="flex justify-between items-start gap-3">
+        <div>
+          <p class="font-medium text-slate-900 dark:text-slate-100">{{ report.file_name }}</p>
+          <p class="text-xs text-slate-500 mt-1">Uploaded {{ report.upload_date.strftime('%Y-%m-%d') }}</p>
+        </div>
+        <span class="text-xs px-2 py-1 rounded-full
+          {% if report.status.value == 'completed' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+          {% elif report.status.value == 'failed' %}bg-red-100 text-red-800
+          {% else %}bg-slate-100 text-slate-600{% endif %}">
+          {{ report.status.value }}
+        </span>
+      </div>
+      {% if report.status.value == 'completed' and report.extracted_data and report.extracted_data.biomarkers %}
+      <dl class="grid grid-cols-2 gap-2 mt-3 text-sm">
+        {% for key, value in report.extracted_data.biomarkers.items() %}
+        <div><dt class="text-slate-500 uppercase text-xs">{{ key }}</dt><dd class="font-medium">{{ value }}</dd></div>
+        {% endfor %}
+      </dl>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-center text-slate-500 dark:text-slate-400 text-sm py-8">
+    No reports uploaded — this is optional.
+  </p>
+  {% endif %}
+</div>
+{% endblock %}
