@@ -33,7 +33,7 @@ class BloodReportService:
         data = report.extracted_data or {}
         return {
             "report_id": str(report.id),
-            "biomarkers": data.get("biomarkers", {}),
+            "biomarkers": data.get("biomarkers", []),
             "flags": data.get("flags", []),
             "report_date": data.get("report_date"),
         }
@@ -75,7 +75,7 @@ class BloodReportService:
 
         try:
             file_bytes = Path(report.file_path).read_bytes()
-            extracted = self.agent.extract_biomarkers(file_bytes, report.mime_type)
+            extracted = await self.agent.extract_biomarkers(file_bytes, report.mime_type)
             if not extracted.get("biomarkers"):
                 raise ValueError("No biomarkers detected in report")
 
@@ -120,8 +120,18 @@ class BloodReportService:
 
     @staticmethod
     def _build_memory_snippet(extracted: dict[str, Any]) -> str:
-        biomarkers = extracted.get("biomarkers") or {}
+        biomarkers = extracted.get("biomarkers") or []
         flags = extracted.get("flags") or []
-        parts = [f"{key} {value}" for key, value in biomarkers.items()]
+        parts: list[str] = []
+        for item in biomarkers:
+            if not isinstance(item, dict):
+                continue
+            name = item.get("name", "unknown")
+            value = item.get("value", "")
+            unit = item.get("unit", "")
+            label = f"{name} {value}"
+            if unit:
+                label = f"{label} {unit}"
+            parts.append(label.strip())
         flag_text = ", ".join(flags) if flags else "no flags"
         return f"Blood report: {', '.join(parts)}; flags: {flag_text}"

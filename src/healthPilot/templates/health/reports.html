@@ -40,8 +40,11 @@
       </div>
       {% if report.status.value == 'completed' and report.extracted_data and report.extracted_data.biomarkers %}
       <dl class="grid grid-cols-2 gap-2 mt-3 text-sm">
-        {% for key, value in report.extracted_data.biomarkers.items() %}
-        <div><dt class="text-slate-500 uppercase text-xs">{{ key }}</dt><dd class="font-medium">{{ value }}</dd></div>
+        {% for item in report.extracted_data.biomarkers %}
+        <div>
+          <dt class="text-slate-500 uppercase text-xs">{{ item.name }}</dt>
+          <dd class="font-medium">{{ item.value }}{% if item.unit %} {{ item.unit }}{% endif %}</dd>
+        </div>
         {% endfor %}
       </dl>
       {% endif %}

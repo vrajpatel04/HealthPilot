@@ -40,12 +40,21 @@ class PrivacyPipeline:
         self._presidio = presidio or PresidioClient()
         self._guardrails = guardrails or GuardrailsClient()
 
-    async def prepare_for_llm(self, text: str, vault: TokenVault | None = None) -> tuple[str, TokenVault]:
-        """Presidio → NeMo input rail. Must run before any external LLM call."""
+    async def prepare_for_llm(
+        self,
+        text: str,
+        vault: TokenVault | None = None,
+        *,
+        user_facing: bool = True,
+    ) -> tuple[str, TokenVault]:
+        """Presidio → NeMo input rail (user-facing only). Must run before any external LLM call."""
         try:
             deidentified, vault = await self._presidio.deidentify(text, vault)
         except PresidioUnavailableError:
             raise
+
+        if not user_facing:
+            return deidentified, vault
 
         validated = await self._guardrails.check_input(deidentified)
         return validated, vault
@@ -70,7 +79,10 @@ class PrivacyPipeline:
         Full pipeline: Presidio → NeMo input → LLM callable → NeMo output (if user-facing).
         `llm_call` receives (deidentified_text, biomarkers) and returns response text.
         """
-        validated_input, vault = await self.prepare_for_llm(pipeline_input.text)
+        validated_input, vault = await self.prepare_for_llm(
+            pipeline_input.text,
+            user_facing=pipeline_input.user_facing,
+        )
         llm_response = await llm_call(validated_input, pipeline_input.biomarkers)
         validated_response = await self.validate_output(
             llm_response,
