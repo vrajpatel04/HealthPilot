@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Wellness Coach — HealthPilot{% endblock %}
+{% block content %}
+<div class="coach-page max-w-3xl mx-auto flex flex-col min-h-[calc(100vh-14rem)]">
+  <div class="mb-4 sm:mb-6">
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Wellness Coach</h1>
+    <p class="text-slate-600 dark:text-slate-400 mt-1 text-sm">
+      Ask lifestyle and wellness questions. Personal details are masked before reaching the AI and restored in replies.
+    </p>
+    {% if biomarkers %}
+    <p class="text-xs text-emerald-700 dark:text-emerald-400 mt-2">
+      Using {{ biomarkers|length }} biomarker{{ 's' if biomarkers|length != 1 else '' }} from your latest blood report.
+    </p>
+    {% endif %}
+  </div>
+
+  <div
+    id="coach-chat"
+    class="coach-chat flex-1 flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden"
+    data-biomarkers="{{ biomarkers|tojson }}"
+  >
+    <div
+      id="coach-messages"
+      class="coach-messages flex-1 overflow-y-auto p-4 sm:p-5 space-y-4"
+      role="log"
+      aria-live="polite"
+      aria-relevant="additions"
+    >
+      <div class="coach-message coach-message-assistant">
+        <div class="coach-message-avatar" aria-hidden="true">HP</div>
+        <div class="coach-message-bubble">
+          <p>Hi! I'm your HealthPilot wellness coach. I can help with sleep, nutrition, fitness, and general lifestyle guidance — not medical diagnosis or prescriptions.</p>
+          <p class="mt-2 text-sm opacity-90">Try asking about programs that fit your health goals, or tap a sample question below.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="coach-suggestions px-4 sm:px-5 pb-2 flex flex-wrap gap-2" id="coach-suggestions">
+      <button type="button" class="coach-suggestion-chip" data-prompt="What sleep programs would help me improve my rest?">
+        Sleep programs
+      </button>
+      <button type="button" class="coach-suggestion-chip" data-prompt="What daily habits support better energy and lower stress?">
+        Energy &amp; stress tips
+      </button>
+    </div>
+
+    <form id="coach-form" class="coach-composer border-t border-slate-200 dark:border-slate-800 p-3 sm:p-4">
+      <div class="flex gap-2 items-end">
+        <label for="coach-input" class="sr-only">Message to wellness coach</label>
+        <textarea
+          id="coach-input"
+          rows="2"
+          maxlength="2000"
+          placeholder="Ask a wellness question…"
+          class="coach-input flex-1 resize-none border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+        ></textarea>
+        <button
+          type="submit"
+          id="coach-send"
+          class="coach-send-btn bg-emerald-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed btn-press shrink-0"
+          aria-label="Send message"
+        >
+          Send
+        </button>
+      </div>
+      <p class="text-xs text-slate-400 mt-2">Enter to send · Shift+Enter for a new line</p>
+    </form>
+  </div>
+</div>
+<script src="/static/js/coach-chat.js"></script>
+{% endblock %}

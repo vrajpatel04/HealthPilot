@@ -122,6 +122,7 @@ After migrations (`alembic upgrade head` includes the `events` table):
 | Pages | URL |
 |-------|-----|
 | Home | http://localhost:8000/ |
+| Wellness Coach | http://localhost:8000/coach |
 | Marketplace | http://localhost:8000/products |
 | Login | http://localhost:8000/login |
 | Admin dashboard | http://localhost:8000/admin/products |

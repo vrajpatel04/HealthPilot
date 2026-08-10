@@ -120,6 +120,10 @@
     <div class="nav-secondary-bar hidden lg:block">
       <div class="hp-container">
         <nav class="nav-secondary-row" aria-label="Navigation">
+          <div class="nav-group">
+            <a href="/coach" class="nav-secondary-link {% if path.startswith('/coach') %}nav-secondary-link-active{% endif %}">Wellness Coach</a>
+          </div>
+          <span class="nav-pipe" aria-hidden="true">|</span>
           {% if show_app_row %}
           <div class="nav-group nav-group-health">
             {% if user %}
@@ -157,6 +161,13 @@
             </button>
           </div>
         </form>
+
+        <div class="mobile-menu-section">
+          <p class="nav-mobile-section-label">Coach</p>
+          <div class="mobile-menu-links">
+            <a href="/coach" class="nav-mobile-link {% if path.startswith('/coach') %}nav-mobile-link-active{% endif %}">Wellness Coach</a>
+          </div>
+        </div>
 
         {% if show_app_row %}
         <div class="mobile-menu-section">

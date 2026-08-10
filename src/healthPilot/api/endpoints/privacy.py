@@ -8,7 +8,7 @@ from healthPilot.privacy import (
 )
 from healthPilot.schemas.privacy import CoachRequest, CoachResponse, PrivacyHealthResponse
 
-router = APIRouter(prefix="/privacy", tags=["privacy"])
+router = APIRouter(tags=["privacy"])
 
 
 @router.get("/health", response_model=PrivacyHealthResponse)
