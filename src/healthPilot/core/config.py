@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     ADMIN_PASSWORD: str = ""
 
     # Agent LLM (Mesh API / OpenAI-compatible)
-    OPENAI_BASE_URL: str = "https://api.openai.com/v1"
+    OPENAI_BASE_URL: str = "https://api.meshapi.ai/v1"
     OPENAI_API_KEY: str = "sk-proj-your-key-here"
     LLM_MODEL: str = "gpt-4o"
     LLM_MODEL_PROVIDER: str = "openai"
